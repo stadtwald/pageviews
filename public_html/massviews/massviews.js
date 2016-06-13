@@ -62,7 +62,7 @@ var config = {
   validParams: {
     direction: ['-1', '1'],
     sort: ['title', 'views', 'original'],
-    source: ['pagepile', 'category', 'transclusions', 'manual'],
+    source: ['pagepile', 'category', 'transclusions'],
     view: ['list', 'chart'],
     subjectpage: ['0', '1']
   }
@@ -190,14 +190,19 @@ var MassViews = function (_Pv) {
           $('.manual-entry--modal').modal('show');
         }
       });
+
+      $('.manual-entry--modal').on('shown.bs.modal', function () {
+        $('.manual-entry--input').focus();
+      });
     }
   }, {
     key: 'parseManualInput',
     value: function parseManualInput() {
       var _this3 = this;
 
+      this.manualEntries = [];
       var entries = $('.manual-entry--input').val().split('\n');
-      var targetInput = [];
+      var errors = [];
 
       entries.forEach(function (entry) {
         var _getWikiPageFromURL = _this3.getWikiPageFromURL(entry);
@@ -209,19 +214,25 @@ var MassViews = function (_Pv) {
 
 
         if (!wiki || !page) {
-          // show error
-          // continue;
+          return errors.push('Manual entry contains one or more invalid URLs.');
         } else if (!siteDomains.includes(wiki)) {
-            // show error
-            // continue;
-          }
+          return errors.push($.i18n('invalid-project', wiki));
+        }
 
-        targetInput.push(wiki.replace(/\.org$/, '') + ':' + page);
+        _this3.manualEntries.push(wiki.replace(/\.org$/, '') + ':' + page);
       });
 
-      $(this.config.sourceInput).val(targetInput.join('|'));
+      this.clearMessages('manual-entry');
+      if (errors.length) {
+        errors.forEach(function (error) {
+          _this3.writeMessage(error, false, 'manual-entry');
+        });
+        return false;
+      }
 
-      // this.processInput();
+      $(this.config.sourceInput).val(this.manualEntries.join('|'));
+      $('.manual-entry--modal').modal('hide');
+      $('#massviews_form').trigger('submit');
     }
   }, {
     key: 'toggleView',
@@ -1048,6 +1059,9 @@ var MassViews = function (_Pv) {
       });
     }
   }, {
+    key: 'processManualEntry',
+    value: function processManualEntry(cb) {}
+  }, {
     key: 'processCategory',
     value: function processCategory(cb) {
       var _this12 = this;
@@ -1618,8 +1632,8 @@ var Pv = function () {
     }
   }, {
     key: 'clearMessages',
-    value: function clearMessages() {
-      $('.message-container').html('');
+    value: function clearMessages(modifier) {
+      $('.message-container' + (modifier ? '-' + modifier : '')).html('');
     }
   }, {
     key: 'clearSiteNotices',
@@ -2630,16 +2644,17 @@ var Pv = function () {
      * Writes message just below the chart
      * @param {string} message - message to write
      * @param {boolean} clear - whether to clear any existing messages
+     * @param {string} [modifier] - modifier to message-container class to target a different list of errors
      * @returns {jQuery} - jQuery object of message container
      */
 
   }, {
     key: 'writeMessage',
-    value: function writeMessage(message, clear) {
+    value: function writeMessage(message, clear, modifier) {
       if (clear) {
         this.clearMessages();
       }
-      return $('.message-container').append('<div class=\'error-message\'>' + message + '</div>');
+      return $('.message-container' + (modifier ? '-' + modifier : '')).append('<div class=\'error-message\'>' + message + '</div>');
     }
   }, {
     key: 'dateFormat',

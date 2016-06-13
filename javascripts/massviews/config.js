@@ -62,7 +62,7 @@ const config = {
   validParams: {
     direction: ['-1', '1'],
     sort: ['title', 'views', 'original'],
-    source: ['pagepile', 'category', 'transclusions', 'manual'],
+    source: ['pagepile', 'category', 'transclusions'],
     view: ['list', 'chart'],
     subjectpage: ['0', '1']
   }

@@ -82,29 +82,40 @@ class MassViews extends Pv {
         $('.manual-entry--modal').modal('show');
       }
     });
+
+    $('.manual-entry--modal').on('shown.bs.modal', () => {
+      $('.manual-entry--input').focus();
+    });
   }
 
   parseManualInput() {
+    this.manualEntries = [];
     const entries = $('.manual-entry--input').val().split('\n');
-    let targetInput = [];
+    let errors = [];
 
     entries.forEach(entry => {
       const [wiki, page] = this.getWikiPageFromURL(entry);
 
       if (!wiki || !page) {
-        // show error
-        // continue;
+        return errors.push('Manual entry contains one or more invalid URLs.');
       } else if (!siteDomains.includes(wiki)) {
-        // show error
-        // continue;
+        return errors.push($.i18n('invalid-project', wiki));
       }
 
-      targetInput.push(`${wiki.replace(/\.org$/, '')}:${page}`);
+      this.manualEntries.push(`${wiki.replace(/\.org$/, '')}:${page}`);
     });
 
-    $(this.config.sourceInput).val(targetInput.join('|'));
+    this.clearMessages('manual-entry');
+    if (errors.length) {
+      errors.forEach(error => {
+        this.writeMessage(error, false, 'manual-entry');
+      });
+      return false;
+    }
 
-    // this.processInput();
+    $(this.config.sourceInput).val(this.manualEntries.join('|'));
+    $('.manual-entry--modal').modal('hide');
+    $('#massviews_form').trigger('submit');
   }
 
   toggleView(view) {
@@ -893,6 +904,15 @@ class MassViews extends Pv {
       }
     });
   }
+
+  // TODO: finish development on this going once getPageViewsData is refactored to support multiple wikis
+  // processManualEntry(cb) {
+  //   const entries = this.manualEntries.split('|');
+
+  //   entries.forEach(entry => {
+
+  //   });
+  // }
 
   processCategory(cb) {
     const [, category] = this.getWikiPageFromURL($(this.config.sourceInput).val());

@@ -89,8 +89,8 @@ class Pv {
     $('.site-notice-wrapper').show();
   }
 
-  clearMessages() {
-    $('.message-container').html('');
+  clearMessages(modifier) {
+    $(`.message-container${modifier ? '-' + modifier : ''}`).html('');
   }
 
   clearSiteNotices() {
@@ -1014,13 +1014,14 @@ class Pv {
    * Writes message just below the chart
    * @param {string} message - message to write
    * @param {boolean} clear - whether to clear any existing messages
+   * @param {string} [modifier] - modifier to message-container class to target a different list of errors
    * @returns {jQuery} - jQuery object of message container
    */
-  writeMessage(message, clear) {
+  writeMessage(message, clear, modifier) {
     if (clear) {
       this.clearMessages();
     }
-    return $('.message-container').append(
+    return $(`.message-container${modifier ? '-' + modifier : ''}`).append(
       `<div class='error-message'>${message}</div>`
     );
   }

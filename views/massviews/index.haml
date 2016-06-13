@@ -178,13 +178,15 @@
                 %span(ariahidden="true") &times;
               %h4.modal-title
                 = $I18N->msg( 'manual-entry' )
-            %form.modal-body
-              %p
-                = $I18N->msg( 'manual-entry-instructions' )
-              - $placeholder = "https://en.wikipedia.org/wiki/Barack_Obama\nhttps://de.wikipedia.org/wiki/John_F._Kennedy\nhttps://ja.wikipedia.org/wiki/セオドア・ルーズベルト"
-              %textarea.form-control.input-control.manual-entry--input(rows="8" placeholder=$placeholder)
-            %div.modal-footer
-              %button.btn.btn-default.manual-entry--cancel(data-dismiss="modal" type="button")
-                = $I18N->msg( 'cancel' )
-              %button.btn.btn-primary.manual-entry--submit(data-dismiss="modal" type="button")
-                = $I18N->msg( 'submit' )
+            %form#manual_entry_form
+              %div.modal-body
+                %p
+                  = $I18N->msg( 'manual-entry-instructions' )
+                - $placeholder = "https://en.wikipedia.org/wiki/Barack_Obama\nhttps://de.wikipedia.org/wiki/John_F._Kennedy\nhttps://ja.wikipedia.org/wiki/セオドア・ルーズベルト"
+                %textarea.form-control.input-control.manual-entry--input(rows="8" placeholder=$placeholder required="required")
+                %div.message-container-manual-entry.tm
+              %div.modal-footer
+                %button.btn.btn-default.manual-entry--cancel(data-dismiss="modal" type="button")
+                  = $I18N->msg( 'cancel' )
+                %button.btn.btn-primary.manual-entry--submit(type="button")
+                  = $I18N->msg( 'submit' )
