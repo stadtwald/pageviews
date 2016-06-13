@@ -35,15 +35,23 @@ var config = {
   sources: {
     category: {
       placeholder: 'https://en.wikipedia.org/wiki/Category:Folk_musicians_from_New_York',
-      type: 'text'
+      type: 'text',
+      textContent: 'category-url'
     },
     pagepile: {
       placeholder: '12345',
-      type: 'number'
+      type: 'number',
+      textContent: 'page-pile-id'
     },
     transclusions: {
       placeholder: 'https://en.wikipedia.org/wiki/Template:Infobox_Olympic_games',
-      type: 'text'
+      type: 'text',
+      textContent: 'template-url'
+    },
+    manual: {
+      placeholder: '',
+      type: 'text',
+      textContent: 'manual-entry'
     }
   },
   platformSelector: '#platform_select',
@@ -54,7 +62,7 @@ var config = {
   validParams: {
     direction: ['-1', '1'],
     sort: ['title', 'views', 'original'],
-    source: ['pagepile', 'category'],
+    source: ['pagepile', 'category', 'transclusions', 'manual'],
     view: ['list', 'chart'],
     subjectpage: ['0', '1']
   }
@@ -167,7 +175,7 @@ var MassViews = function (_Pv) {
       $('.download-json').on('click', this.exportJSON.bind(this));
 
       $('.source-option').on('click', function (e) {
-        return _this2.updateSourceInput(e.target);
+        return _this2.updateSourceInput(e.target.dataset.value);
       });
 
       $('.view-btn').on('click', function (e) {
@@ -175,6 +183,45 @@ var MassViews = function (_Pv) {
         _this2.view = e.currentTarget.dataset.value;
         _this2.toggleView(_this2.view);
       });
+
+      $('.manual-entry--submit').on('click', this.parseManualInput.bind(this));
+      $(this.config.sourceInput).on('focus', function () {
+        if ($(_this2.config.sourceButton).data('value') === 'manual') {
+          $('.manual-entry--modal').modal('show');
+        }
+      });
+    }
+  }, {
+    key: 'parseManualInput',
+    value: function parseManualInput() {
+      var _this3 = this;
+
+      var entries = $('.manual-entry--input').val().split('\n');
+      var targetInput = [];
+
+      entries.forEach(function (entry) {
+        var _getWikiPageFromURL = _this3.getWikiPageFromURL(entry);
+
+        var _getWikiPageFromURL2 = _slicedToArray(_getWikiPageFromURL, 2);
+
+        var wiki = _getWikiPageFromURL2[0];
+        var page = _getWikiPageFromURL2[1];
+
+
+        if (!wiki || !page) {
+          // show error
+          // continue;
+        } else if (!siteDomains.includes(wiki)) {
+            // show error
+            // continue;
+          }
+
+        targetInput.push(wiki.replace(/\.org$/, '') + ':' + page);
+      });
+
+      $(this.config.sourceInput).val(targetInput.join('|'));
+
+      // this.processInput();
     }
   }, {
     key: 'toggleView',
@@ -203,12 +250,12 @@ var MassViews = function (_Pv) {
     }
   }, {
     key: 'updateSourceInput',
-    value: function updateSourceInput(node) {
-      var source = node.dataset.value;
+    value: function updateSourceInput(source) {
+      var sourceConfig = this.config.sources[source];
 
-      $('#source_button').data('value', source).html(node.textContent + ' <span class=\'caret\'></span>');
+      $('#source_button').data('value', source).html($.i18n(sourceConfig.textContent) + ' <span class=\'caret\'></span>');
 
-      $(this.config.sourceInput).prop('type', this.config.sources[source].type).prop('placeholder', this.config.sources[source].placeholder).val('');
+      $(this.config.sourceInput).prop('type', sourceConfig.type).prop('placeholder', sourceConfig.placeholder).val('');
 
       if (source === 'category') {
         $('.category-subject-toggle').show();
@@ -216,7 +263,11 @@ var MassViews = function (_Pv) {
         $('.category-subject-toggle').hide();
       }
 
-      $(this.config.sourceInput).focus();
+      if (source === 'manual') {
+        $('.manual-entry--input').focus();
+      } else {
+        $(this.config.sourceInput).focus();
+      }
     }
 
     /**
@@ -315,18 +366,18 @@ var MassViews = function (_Pv) {
   }, {
     key: 'renderData',
     value: function renderData() {
-      var _this3 = this;
+      var _this4 = this;
 
       var articleDatasets = this.massData.listData;
       /** sort ascending by current sort setting */
       var sortedMassViews = articleDatasets.sort(function (a, b) {
-        var before = _this3.getSortProperty(a, _this3.sort),
-            after = _this3.getSortProperty(b, _this3.sort);
+        var before = _this4.getSortProperty(a, _this4.sort),
+            after = _this4.getSortProperty(b, _this4.sort);
 
         if (before < after) {
-          return _this3.direction;
+          return _this4.direction;
         } else if (before > after) {
-          return -_this3.direction;
+          return -_this4.direction;
         } else {
           return 0;
         }
@@ -340,7 +391,7 @@ var MassViews = function (_Pv) {
       $('#mass_list').html('');
 
       sortedMassViews.forEach(function (item, index) {
-        $('#mass_list').append('<tr>\n         <th scope=\'row\'>' + (index + 1) + '</th>\n         <td><a href="https://' + _this3.sourceProject + '/wiki/' + item.label + '" target="_blank">' + item.label.descore() + '</a></td>\n         <td><a target="_blank" href=\'' + _this3.getPageviewsURL(_this3.sourceProject, item.label) + '\'>' + _this3.formatNumber(item.sum) + '</a></td>\n         <td>' + _this3.formatNumber(Math.round(item.average)) + ' / ' + $.i18n('day') + '</td>\n         </tr>');
+        $('#mass_list').append('<tr>\n         <th scope=\'row\'>' + (index + 1) + '</th>\n         <td><a href="https://' + _this4.sourceProject + '/wiki/' + item.label + '" target="_blank">' + item.label.descore() + '</a></td>\n         <td><a target="_blank" href=\'' + _this4.getPageviewsURL(_this4.sourceProject, item.label) + '\'>' + _this4.formatNumber(item.sum) + '</a></td>\n         <td>' + _this4.formatNumber(Math.round(item.average)) + ' / ' + $.i18n('day') + '</td>\n         </tr>');
       });
 
       this.pushParams();
@@ -362,12 +413,12 @@ var MassViews = function (_Pv) {
   }, {
     key: 'fillInZeros',
     value: function fillInZeros(items, startDate, endDate) {
-      var _this4 = this;
+      var _this5 = this;
 
       /** Extract the dates that are already in the timeseries */
       var alreadyThere = {};
       items.forEach(function (elem) {
-        var date = moment(elem.timestamp, _this4.config.timestampFormat);
+        var date = moment(elem.timestamp, _this5.config.timestampFormat);
         alreadyThere[date] = elem;
       });
       var data = [],
@@ -444,7 +495,7 @@ var MassViews = function (_Pv) {
   }, {
     key: 'getPageViewsData',
     value: function getPageViewsData(project, pages) {
-      var _this5 = this;
+      var _this6 = this;
 
       var startDate = this.daterangepicker.startDate.startOf('day'),
           endDate = this.daterangepicker.endDate.startOf('day');
@@ -461,7 +512,7 @@ var MassViews = function (_Pv) {
 
       var makeRequest = function makeRequest(page) {
         var uriEncodedPageName = encodeURIComponent(page);
-        var url = 'https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/' + project + ('/' + $(_this5.config.platformSelector).val() + '/' + $(_this5.config.agentSelector).val() + '/' + uriEncodedPageName + '/daily') + ('/' + startDate.format(_this5.config.timestampFormat) + '/' + endDate.format(_this5.config.timestampFormat));
+        var url = 'https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/' + project + ('/' + $(_this6.config.platformSelector).val() + '/' + $(_this6.config.agentSelector).val() + '/' + uriEncodedPageName + '/daily') + ('/' + startDate.format(_this6.config.timestampFormat) + '/' + endDate.format(_this6.config.timestampFormat));
         var promise = $.ajax({ url: url, dataType: 'json' });
         promises.push(promise);
 
@@ -485,27 +536,27 @@ var MassViews = function (_Pv) {
             /** maximum of 3 retries */
             if (failureRetries[project] < 3) {
               totalRequestCount++;
-              return _this5.rateLimit(makeRequest, 100, _this5)(page);
+              return _this6.rateLimit(makeRequest, 100, _this6)(page);
             }
           }
 
           if (cassandraError) {
             failedPages.push(page);
           } else {
-            _this5.writeMessage(_this5.getPageLink(page, project) + ': ' + $.i18n('api-error', 'Pageviews API') + ' - ' + errorData.responseJSON.title);
+            _this6.writeMessage(_this6.getPageLink(page, project) + ': ' + $.i18n('api-error', 'Pageviews API') + ' - ' + errorData.responseJSON.title);
           }
 
           hadFailure = true; // don't treat this series of requests as being cached by server
         }).always(function () {
-          _this5.updateProgressBar(++count / totalRequestCount * 100);
+          _this6.updateProgressBar(++count / totalRequestCount * 100);
 
           // XXX: throttling
           if (count === totalRequestCount) {
             dfd.resolve(pageViewsData);
 
             if (failedPages.length) {
-              _this5.writeMessage($.i18n('api-error-timeout', '<ul>' + failedPages.map(function (failedPage) {
-                return '<li>' + _this5.getPageLink(failedPage, project) + '</li>';
+              _this6.writeMessage($.i18n('api-error-timeout', '<ul>' + failedPages.map(function (failedPage) {
+                return '<li>' + _this6.getPageLink(failedPage, project) + '</li>';
               }).join('') + '</ul>'));
             }
 
@@ -515,7 +566,7 @@ var MassViews = function (_Pv) {
              */
             // XXX: throttling
             if (!hadFailure) {
-              simpleStorage.set(_this5.getCacheKey(), true, { TTL: 600000 });
+              simpleStorage.set(_this6.getCacheKey(), true, { TTL: 600000 });
             }
           }
         });
@@ -548,7 +599,7 @@ var MassViews = function (_Pv) {
   }, {
     key: 'buildMotherDataset',
     value: function buildMotherDataset(label, link, datasets) {
-      var _this6 = this;
+      var _this7 = this;
 
       /**
        * `datasets` structure:
@@ -610,7 +661,7 @@ var MassViews = function (_Pv) {
           return a + b;
         });
 
-        _this6.massData.listData.push({
+        _this7.massData.listData.push({
           data: data,
           label: dataset.title,
           sum: sum,
@@ -623,7 +674,7 @@ var MassViews = function (_Pv) {
          * See fillInZeros() comments for more info.
          */
 
-        var _fillInZeros = _this6.fillInZeros(dataset.items, startDate, endDate);
+        var _fillInZeros = _this7.fillInZeros(dataset.items, startDate, endDate);
 
         var _fillInZeros2 = _slicedToArray(_fillInZeros, 2);
 
@@ -660,7 +711,7 @@ var MassViews = function (_Pv) {
 
       if (datesWithoutData.length) {
         var dateList = datesWithoutData.map(function (date) {
-          return moment(date).format(_this6.dateFormat);
+          return moment(date).format(_this7.dateFormat);
         });
         // FIXME: i18N
         this.writeMessage($.i18n('api-incomplete-data', dateList.sort().join(' &middot; ')));
@@ -720,7 +771,7 @@ var MassViews = function (_Pv) {
   }, {
     key: 'getPagePile',
     value: function getPagePile(id) {
-      var _this7 = this;
+      var _this8 = this;
 
       var dfd = $.Deferred();
       var url = 'https://tools.wmflabs.org/pagepile/api.php?id=' + id + '&action=get_data&format=json&metadata=1';
@@ -732,9 +783,9 @@ var MassViews = function (_Pv) {
         var pages = Object.keys(data.pages);
 
         if (pages.length > 500) {
-          _this7.writeMessage($.i18n('massviews-oversized-set', _this7.getPileLink(id), _this7.n(pages.length), _this7.config.pageLimit));
+          _this8.writeMessage($.i18n('massviews-oversized-set', _this8.getPileLink(id), _this8.n(pages.length), _this8.config.pageLimit));
 
-          pages = pages.slice(0, _this7.config.pageLimit);
+          pages = pages.slice(0, _this8.config.pageLimit);
         }
 
         return dfd.resolve({
@@ -743,7 +794,7 @@ var MassViews = function (_Pv) {
           pages: pages
         });
       }).fail(function (error) {
-        return dfd.reject(_this7.getPileLink(id) + ': ' + $.i18n('api-error-no-data'));
+        return dfd.reject(_this8.getPileLink(id) + ': ' + $.i18n('api-error-no-data'));
       });
 
       return dfd;
@@ -778,7 +829,7 @@ var MassViews = function (_Pv) {
   }, {
     key: 'popParams',
     value: function popParams() {
-      var _this8 = this;
+      var _this9 = this;
 
       var startDate = void 0,
           endDate = void 0,
@@ -817,12 +868,12 @@ var MassViews = function (_Pv) {
       /** import params or set defaults if invalid */
       ['sort', 'direction', 'view', 'source', 'subjectpage'].forEach(function (key) {
         var value = params[key];
-        if (value && _this8.config.validParams[key].includes(value)) {
+        if (value && _this9.config.validParams[key].includes(value)) {
           params[key] = value;
-          _this8[key] = value;
+          _this9[key] = value;
         } else {
-          params[key] = _this8.config.defaults.params[key];
-          _this8[key] = _this8.config.defaults.params[key];
+          params[key] = _this9.config.defaults.params[key];
+          _this9[key] = _this9.config.defaults.params[key];
         }
       });
 
@@ -830,7 +881,7 @@ var MassViews = function (_Pv) {
         $('.category-subject-toggle--input').prop('checked', true);
       }
 
-      this.updateSourceInput($('.source-option[data-value=' + params.source + ']')[0]);
+      this.updateSourceInput(params.source);
 
       /** start up processing if necessary params are present */
       if (params.target) {
@@ -898,14 +949,14 @@ var MassViews = function (_Pv) {
   }, {
     key: 'setupDateRangeSelector',
     value: function setupDateRangeSelector() {
-      var _this9 = this;
+      var _this10 = this;
 
       var dateRangeSelector = $(this.config.dateRangeSelector);
 
       /** transform this.config.specialRanges to have i18n as keys */
       var ranges = {};
       Object.keys(this.config.specialRanges).forEach(function (key) {
-        ranges[$.i18n(key)] = _this9.config.specialRanges[key];
+        ranges[$.i18n(key)] = _this10.config.specialRanges[key];
       });
 
       dateRangeSelector.daterangepicker({
@@ -936,34 +987,34 @@ var MassViews = function (_Pv) {
        */
       $('.daterangepicker .ranges li').on('click', function (e) {
         var index = $('.daterangepicker .ranges li').index(e.target),
-            container = _this9.daterangepicker.container,
+            container = _this10.daterangepicker.container,
             inputs = container.find('.daterangepicker_input input');
-        _this9.specialRange = {
-          range: Object.keys(_this9.config.specialRanges)[index],
+        _this10.specialRange = {
+          range: Object.keys(_this10.config.specialRanges)[index],
           value: inputs[0].value + ' - ' + inputs[1].value
         };
       });
 
       dateRangeSelector.on('apply.daterangepicker', function (e, action) {
         if (action.chosenLabel === $.i18n('custom-range')) {
-          _this9.specialRange = null;
+          _this10.specialRange = null;
 
           /** force events to re-fire since apply.daterangepicker occurs before 'change' event */
-          _this9.daterangepicker.updateElement();
+          _this10.daterangepicker.updateElement();
         }
       });
     }
   }, {
     key: 'processPagePile',
     value: function processPagePile(cb) {
-      var _this10 = this;
+      var _this11 = this;
 
       var pileId = $(this.config.sourceInput).val();
 
       this.getPagePile(pileId).done(function (pileData) {
         if (!pileData.pages.length) {
-          return _this10.setState('initial', function () {
-            _this10.writeMessage($.i18n('massviews-empty-set', _this10.getPileLink(pileId)));
+          return _this11.setState('initial', function () {
+            _this11.writeMessage($.i18n('massviews-empty-set', _this11.getPileLink(pileId)));
           });
         }
 
@@ -972,57 +1023,47 @@ var MassViews = function (_Pv) {
          * At this point we know we have data to process,
          *   so set the throttle flag to disallow additional requests for the next 90 seconds
          */
-        if (!_this10.isRequestCached()) simpleStorage.set('pageviews-throttle', true, { TTL: 90000 });
+        if (!_this11.isRequestCached()) simpleStorage.set('pageviews-throttle', true, { TTL: 90000 });
 
-        _this10.sourceProject = siteMap[pileData.wiki];
-        _this10.getPageViewsData(_this10.sourceProject, pileData.pages).done(function (pageViewsData) {
+        _this11.sourceProject = siteMap[pileData.wiki];
+        _this11.getPageViewsData(_this11.sourceProject, pileData.pages).done(function (pageViewsData) {
           var label = 'Page Pile #' + pileData.id;
 
-          $('.massviews-input-name').text(label).prop('href', _this10.getPileURL(pileData.id));
-          $('.massviews-params').html('\n          ' + $(_this10.config.dateRangeSelector).val() + '\n          &mdash;\n          <a href="https://' + _this10.sourceProject + '" target="_blank">' + _this10.sourceProject.replace(/.org$/, '') + '</a>\n          ');
+          $('.massviews-input-name').text(label).prop('href', _this11.getPileURL(pileData.id));
+          $('.massviews-params').html('\n          ' + $(_this11.config.dateRangeSelector).val() + '\n          &mdash;\n          <a href="https://' + _this11.sourceProject + '" target="_blank">' + _this11.sourceProject.replace(/.org$/, '') + '</a>\n          ');
 
-          _this10.buildMotherDataset(label, _this10.getPileLink(pileData.id), pageViewsData);
+          _this11.buildMotherDataset(label, _this11.getPileLink(pileData.id), pageViewsData);
 
           cb();
         });
       }).fail(function (error) {
-        _this10.setState('initial');
+        _this11.setState('initial');
 
         /** structured error comes back as a string, otherwise we don't know what happened */
         if (typeof error === 'string') {
-          _this10.writeMessage(error);
+          _this11.writeMessage(error);
         } else {
-          _this10.writeMessage($.i18n('api-error-unknown', 'Page Pile'));
+          _this11.writeMessage($.i18n('api-error-unknown', 'Page Pile'));
         }
       });
     }
   }, {
     key: 'processCategory',
     value: function processCategory(cb) {
-      var _this11 = this;
+      var _this12 = this;
 
-      var _getWikiPageFromURL = this.getWikiPageFromURL($(this.config.sourceInput).val());
+      var _getWikiPageFromURL3 = this.getWikiPageFromURL($(this.config.sourceInput).val());
 
-      var _getWikiPageFromURL2 = _slicedToArray(_getWikiPageFromURL, 2);
+      var _getWikiPageFromURL4 = _slicedToArray(_getWikiPageFromURL3, 2);
 
-      var project = _getWikiPageFromURL2[0];
-      var category = _getWikiPageFromURL2[1];
+      var category = _getWikiPageFromURL4[1];
 
-
-      if (!category) {
-        return this.setState('initial', function () {
-          _this11.writeMessage($.i18n('invalid-category-url'));
-        });
-      }
 
       var requestData = {
-        action: 'query',
-        format: 'json',
         list: 'categorymembers',
         cmlimit: 500,
         cmtitle: decodeURIComponent(category),
-        prop: 'categoryinfo',
-        titles: decodeURIComponent(category)
+        prop: 'categoryinfo'
       };
 
       if ($('.category-subject-toggle--input').is(':checked')) {
@@ -1030,135 +1071,22 @@ var MassViews = function (_Pv) {
         requestData.siprop = 'namespaces';
       }
 
-      var promise = $.ajax({
-        url: 'https://' + project + '/w/api.php',
-        jsonp: 'callback',
-        dataType: 'jsonp',
-        data: requestData
-      });
-      var categoryLink = this.getPageLink(decodeURIComponent(category), project);
-      this.sourceProject = project; // for caching purposes
-
-      promise.done(function (data) {
-        if (data.error) {
-          return _this11.setState('initial', function () {
-            _this11.writeMessage($.i18n('api-error', 'Category API') + ': ' + data.error.info);
-          });
-        }
-
-        var queryKey = Object.keys(data.query.pages)[0];
-
-        if (queryKey === '-1') {
-          return _this11.setState('initial', function () {
-            _this11.writeMessage($.i18n('api-error-no-data'));
-          });
-        }
-
+      var promise = this.processApiHelper(requestData, 'category');
+      promise.done(function (data, queryKey, link) {
         var size = data.query.pages[queryKey].categoryinfo.size,
             namespaces = data.query.namespaces;
         var pages = data.query.categorymembers;
 
         if (!pages.length) {
-          return _this11.setState('initial', function () {
-            _this11.writeMessage($.i18n('massviews-empty-set', categoryLink));
-          });
-        }
-
-        if (size > _this11.config.pageLimit) {
-          _this11.writeMessage($.i18n('massviews-oversized-set', categoryLink, _this11.n(size), _this11.config.pageLimit));
-
-          pages = pages.slice(0, _this11.config.pageLimit);
-        }
-
-        /**
-         * XXX: throttling
-         * At this point we know we have data to process,
-         *   so set the throttle flag to disallow additional requests for the next 90 seconds
-         */
-        _this11.setThrottle();
-
-        var pageNames = _this11.mapCategoryPageNames(pages, namespaces);
-
-        _this11.getPageViewsData(project, pageNames).done(function (pageViewsData) {
-          $('.massviews-input-name').html(categoryLink);
-          $('.massviews-params').html($(_this11.config.dateRangeSelector).val());
-          _this11.buildMotherDataset(category, categoryLink, pageViewsData);
-
-          cb();
-        });
-      }).fail(function (data) {
-        _this11.setState('initial');
-
-        /** structured error comes back as a string, otherwise we don't know what happened */
-        if (data && data.error) {
-          _this11.writeMessage($.i18n('api-error', categoryLink + ': ' + data.error));
-        } else {
-          _this11.writeMessage($.i18n('api-error-unknown', categoryLink));
-        }
-      });
-    }
-  }, {
-    key: 'processTemplate',
-    value: function processTemplate(cb) {
-      var _this12 = this;
-
-      var _getWikiPageFromURL3 = this.getWikiPageFromURL($(this.config.sourceInput).val());
-
-      var _getWikiPageFromURL4 = _slicedToArray(_getWikiPageFromURL3, 2);
-
-      var project = _getWikiPageFromURL4[0];
-      var template = _getWikiPageFromURL4[1];
-
-
-      if (!template) {
-        return this.setState('initial', function () {
-          _this12.writeMessage($.i18n('invalid-template-url'));
-        });
-      }
-
-      var promise = $.ajax({
-        url: 'https://' + project + '/w/api.php',
-        jsonp: 'callback',
-        dataType: 'jsonp',
-        data: {
-          action: 'query',
-          format: 'json',
-          tilimit: 500,
-          titles: decodeURIComponent(template),
-          prop: 'transcludedin'
-        }
-      });
-      var templateLink = this.getPageLink(decodeURIComponent(template), project);
-      this.sourceProject = project; // for caching purposes
-
-      promise.done(function (data) {
-        if (data.error) {
           return _this12.setState('initial', function () {
-            _this12.writeMessage($.i18n('api-error', 'Transclusion API') + ': ' + data.error.info);
+            _this12.writeMessage($.i18n('massviews-empty-set', link));
           });
         }
 
-        var queryKey = Object.keys(data.query.pages)[0];
+        if (size > _this12.config.pageLimit) {
+          _this12.writeMessage($.i18n('massviews-oversized-set', link, _this12.n(size), _this12.config.pageLimit));
 
-        if (queryKey === '-1') {
-          return _this12.setState('initial', function () {
-            _this12.writeMessage($.i18n('api-error-no-data'));
-          });
-        }
-
-        var pages = data.query.pages[queryKey].transcludedin.map(function (page) {
-          return page.title;
-        });
-
-        if (!pages.length) {
-          return _this12.setState('initial', function () {
-            _this12.writeMessage($.i18n('massviews-empty-set', templateLink));
-          });
-        }
-
-        // in this case we are limited by the API to 500 pages, not this.config.pageLimit
-        if (data.continue) {
-          _this12.writeMessage($.i18n('massviews-oversized-set-unknown', templateLink, 500));
+          pages = pages.slice(0, _this12.config.pageLimit);
         }
 
         /**
@@ -1168,23 +1096,126 @@ var MassViews = function (_Pv) {
          */
         _this12.setThrottle();
 
-        _this12.getPageViewsData(project, pages).done(function (pageViewsData) {
-          $('.massviews-input-name').html(templateLink);
+        var pageNames = _this12.mapCategoryPageNames(pages, namespaces);
+
+        _this12.getPageViewsData(_this12.sourceProject, pageNames).done(function (pageViewsData) {
+          $('.massviews-input-name').html(link);
           $('.massviews-params').html($(_this12.config.dateRangeSelector).val());
-          _this12.buildMotherDataset(template, templateLink, pageViewsData);
+          _this12.buildMotherDataset(category, link, pageViewsData);
 
           cb();
         });
+      });
+    }
+  }, {
+    key: 'processTemplate',
+    value: function processTemplate(cb) {
+      var _this13 = this;
+
+      var requestData = {
+        tilimit: 500,
+        prop: 'transcludedin'
+      };
+
+      var promise = this.processApiHelper(requestData, 'template');
+      promise.done(function (data, queryKey, link) {
+        var template = data.query.pages[queryKey].title,
+            pages = data.query.pages[queryKey].transcludedin.map(function (page) {
+          return page.title;
+        });
+
+        if (!pages.length) {
+          return _this13.setState('initial', function () {
+            _this13.writeMessage($.i18n('massviews-empty-set', link));
+          });
+        }
+
+        // in this case we are limited by the API to 500 pages, not this.config.pageLimit
+        if (data.continue) {
+          _this13.writeMessage($.i18n('massviews-oversized-set-unknown', link, 500));
+        }
+
+        /**
+         * XXX: throttling
+         * At this point we know we have data to process,
+         *   so set the throttle flag to disallow additional requests for the next 90 seconds
+         */
+        _this13.setThrottle();
+
+        _this13.getPageViewsData(_this13.sourceProject, pages).done(function (pageViewsData) {
+          $('.massviews-input-name').html(link);
+          $('.massviews-params').html($(_this13.config.dateRangeSelector).val());
+          _this13.buildMotherDataset(template, link, pageViewsData);
+
+          cb();
+        });
+      });
+    }
+  }, {
+    key: 'processApiHelper',
+    value: function processApiHelper(requestData, sourceType) {
+      var _this14 = this;
+
+      var _getWikiPageFromURL5 = this.getWikiPageFromURL($(this.config.sourceInput).val());
+
+      var _getWikiPageFromURL6 = _slicedToArray(_getWikiPageFromURL5, 2);
+
+      var project = _getWikiPageFromURL6[0];
+      var title = _getWikiPageFromURL6[1];
+
+
+      if (!title) {
+        return this.setState('initial', function () {
+          var i18nKey = 'invalid-' + sourceType.toLowerCase() + '-url';
+          _this14.writeMessage($.i18n(i18nKey));
+        });
+      }
+
+      var outerPromise = $.Deferred();
+
+      var promise = $.ajax({
+        url: 'https://' + project + '/w/api.php',
+        jsonp: 'callback',
+        dataType: 'jsonp',
+        data: Object.assign({
+          action: 'query',
+          format: 'json',
+          titles: decodeURIComponent(title)
+        }, requestData)
+      });
+      var link = this.getPageLink(decodeURIComponent(title), project);
+      this.sourceProject = project;
+
+      promise.done(function (data) {
+        if (data.error) {
+          return _this14.setState('initial', function () {
+            _this14.writeMessage($.i18n('api-error', sourceType + ' API') + ': ' + data.error.info);
+          });
+        }
+
+        var queryKey = Object.keys(data.query.pages)[0];
+
+        if (queryKey === '-1') {
+          return _this14.setState('initial', function () {
+            _this14.writeMessage($.i18n('api-error-no-data'));
+          });
+        }
+
+        outerPromise.resolve(data, queryKey, link);
       }).fail(function (data) {
-        _this12.setState('initial');
+        _this14.setState('initial');
 
         /** structured error comes back as a string, otherwise we don't know what happened */
         if (data && data.error) {
-          _this12.writeMessage($.i18n('api-error', templateLink + ': ' + data.error));
+          _this14.writeMessage($.i18n('api-error', templateLink + ': ' + data.error));
         } else {
-          _this12.writeMessage($.i18n('api-error-unknown', templateLink));
+          _this14.writeMessage($.i18n('api-error-unknown', templateLink));
         }
+
+        outerPromise.reject(data);
       });
+
+      return outerPromise;
     }
   }, {
     key: 'mapCategoryPageNames',
@@ -1213,7 +1244,7 @@ var MassViews = function (_Pv) {
   }, {
     key: 'processInput',
     value: function processInput() {
-      var _this13 = this;
+      var _this15 = this;
 
       // XXX: throttling
       /** allow resubmission of queries that are cached */
@@ -1232,14 +1263,14 @@ var MassViews = function (_Pv) {
       this.setState('processing');
 
       var cb = function cb() {
-        _this13.updateProgressBar(100);
-        _this13.renderData();
+        _this15.updateProgressBar(100);
+        _this15.renderData();
 
         // XXX: throttling
-        _this13.setThrottle();
+        _this15.setThrottle();
       };
 
-      switch ($('#source_button').data('value')) {
+      switch ($(this.config.sourceButton).data('value')) {
         case 'pagepile':
           this.processPagePile(cb);
           break;
@@ -1249,6 +1280,8 @@ var MassViews = function (_Pv) {
         case 'transclusions':
           this.processTemplate(cb);
           break;
+        case 'manual':
+          this.processManualEntry(cb);
       }
     }
 

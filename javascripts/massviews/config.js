@@ -35,15 +35,23 @@ const config = {
   sources: {
     category: {
       placeholder: 'https://en.wikipedia.org/wiki/Category:Folk_musicians_from_New_York',
-      type: 'text'
+      type: 'text',
+      textContent: 'category-url'
     },
     pagepile: {
       placeholder: '12345',
-      type: 'number'
+      type: 'number',
+      textContent: 'page-pile-id'
     },
     transclusions: {
       placeholder: 'https://en.wikipedia.org/wiki/Template:Infobox_Olympic_games',
-      type: 'text'
+      type: 'text',
+      textContent: 'template-url'
+    },
+    manual: {
+      placeholder: '',
+      type: 'text',
+      textContent: 'manual-entry'
     }
   },
   platformSelector: '#platform_select',
@@ -54,7 +62,7 @@ const config = {
   validParams: {
     direction: ['-1', '1'],
     sort: ['title', 'views', 'original'],
-    source: ['pagepile', 'category'],
+    source: ['pagepile', 'category', 'transclusions', 'manual'],
     view: ['list', 'chart'],
     subjectpage: ['0', '1']
   }

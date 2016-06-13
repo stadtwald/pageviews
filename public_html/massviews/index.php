@@ -118,6 +118,11 @@
                         <?php echo $I18N->msg( 'template-url' ); ?>
                       </a>
                     </li>
+                    <li>
+                      <a class="source-option" href="#" data-value="manual" data-target=".manual-entry--modal" data-toggle="modal">
+                        <?php echo $I18N->msg( 'manual-entry' ); ?>
+                      </a>
+                    </li>
                   </ul>
                 </div>
                 <input class="form-control input-control source-input" id="source_input" min="0" required="required">
@@ -214,6 +219,35 @@
         <?php include "../_footer.php"; ?>
       </main>
       <?php include "../_modals.php"; ?>
+      <div class="modal fade manual-entry--modal" role="dialog" tabindex="-1">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button arialabel="Close" class="close" data-dismiss="modal" type="button">
+                <span ariahidden="true">&times;</span>
+              </button>
+              <h4 class="modal-title">
+                <?php echo $I18N->msg( 'manual-entry' ); ?>
+              </h4>
+            </div>
+            <form class="modal-body">
+              <p>
+                <?php echo $I18N->msg( 'manual-entry-instructions' ); ?>
+              </p>
+              <?php $placeholder = "https://en.wikipedia.org/wiki/Barack_Obama\nhttps://de.wikipedia.org/wiki/John_F._Kennedy\nhttps://ja.wikipedia.org/wiki/セオドア・ルーズベルト"; ?>
+              <textarea class="form-control input-control manual-entry--input" rows="8" placeholder="<?php echo $placeholder; ?>"></textarea>
+            </form>
+            <div class="modal-footer">
+              <button class="btn btn-default manual-entry--cancel" data-dismiss="modal" type="button">
+                <?php echo $I18N->msg( 'cancel' ); ?>
+              </button>
+              <button class="btn btn-primary manual-entry--submit" data-dismiss="modal" type="button">
+                <?php echo $I18N->msg( 'submit' ); ?>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </body>
 </html>

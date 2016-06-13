@@ -85,6 +85,9 @@
                     %li
                       %a.source-option(href="#" data-value="transclusions")
                         = $I18N->msg( 'template-url' )
+                    %li
+                      %a.source-option(href="#" data-value="manual" data-target=".manual-entry--modal" data-toggle="modal")
+                        = $I18N->msg( 'manual-entry' )
                 %input.form-control.input-control.source-input#source_input(min="0" required="required")
                 %span.input-group-btn
                   %button.btn.btn-primary.pull-right
@@ -166,3 +169,22 @@
         - include "../_footer.php"
 
       - include "../_modals.php"
+
+      %div.modal.fade.manual-entry--modal(role="dialog" tabindex="-1")
+        %div.modal-dialog(role="document")
+          %div.modal-content
+            %div.modal-header
+              %button(arialabel="Close" class="close" data-dismiss="modal" type="button")
+                %span(ariahidden="true") &times;
+              %h4.modal-title
+                = $I18N->msg( 'manual-entry' )
+            %form.modal-body
+              %p
+                = $I18N->msg( 'manual-entry-instructions' )
+              - $placeholder = "https://en.wikipedia.org/wiki/Barack_Obama\nhttps://de.wikipedia.org/wiki/John_F._Kennedy\nhttps://ja.wikipedia.org/wiki/セオドア・ルーズベルト"
+              %textarea.form-control.input-control.manual-entry--input(rows="8" placeholder=$placeholder)
+            %div.modal-footer
+              %button.btn.btn-default.manual-entry--cancel(data-dismiss="modal" type="button")
+                = $I18N->msg( 'cancel' )
+              %button.btn.btn-primary.manual-entry--submit(data-dismiss="modal" type="button")
+                = $I18N->msg( 'submit' )

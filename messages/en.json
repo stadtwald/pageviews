@@ -217,5 +217,7 @@
 	"elapsed-time": "Elapsed time: $1 {{PLURAL:$1|second|seconds}}",
 	"num-pages": "$1 {{PLURAL:$1|page|pages}}",
 	"category-subject-toggle": "Use subject page instead of talk page",
-	"template-url": "Template URL"
+	"template-url": "Template URL",
+	"manual-entry": "Manual entry",
+	"manual-entry-instructions": "Enter full URLs, one per line. They can be from multiple projects."
 }

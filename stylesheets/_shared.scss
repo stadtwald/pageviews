@@ -23,7 +23,8 @@ hr {
 }
 
 input,
-select {
+select,
+textarea {
   // scss-lint:disable ImportantRule
   background: $form-control-bg !important;
 }
