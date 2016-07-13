@@ -974,14 +974,14 @@ class Pv extends PvConfig {
     if (!this.isRequestCached()) simpleStorage.set('pageviews-throttle', true, {TTL: 90000});
   }
 
-  showFatalErrors(messages) {
+  showFatalErrors(errors) {
     this.clearMessages();
-    messages.forEach(message => {
+    errors.forEach(error => {
       this.writeMessage(
-        `<strong>${$.i18n('fatal-error')}</strong>: <code>${message}</code>`
+        `<strong>${$.i18n('fatal-error')}</strong>: <code>${error}</code>`
       );
     });
-    this.writeMessage($.i18n('error-please-report', this.getBugReportURL(messages)));
+    // this.writeMessage($.i18n('error-please-report', this.getBugReportURL(messages)));
 
     if (location.host === 'localhost' || this.debug) {
       throw messages[0];
