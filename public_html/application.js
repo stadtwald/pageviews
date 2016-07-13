@@ -2589,10 +2589,8 @@ var ChartHelpers = function ChartHelpers(superclass) {
 
           if (xhrData.fatalErrors.length) {
             this.resetView(true);
-            var fatalErrorMessages = xhrData.fatalErrors.map(function (err) {
-              return err.toString();
-            }).unique();
-            this.showFatalErrors(fatalErrorMessages);
+            var fatalErrors = xhrData.fatalErrors.unique();
+            this.showFatalErrors(fatalErrors);
 
             return true;
           }
@@ -4251,14 +4249,14 @@ var Pv = function (_PvConfig) {
     }
   }, {
     key: 'showFatalErrors',
-    value: function showFatalErrors(messages) {
+    value: function showFatalErrors(errors) {
       var _this9 = this;
 
       this.clearMessages();
-      messages.forEach(function (message) {
-        _this9.writeMessage('<strong>' + $.i18n('fatal-error') + '</strong>: <code>' + message + '</code>');
+      errors.forEach(function (error) {
+        _this9.writeMessage('<strong>' + $.i18n('fatal-error') + '</strong>: <code>' + error + '</code>');
       });
-      this.writeMessage($.i18n('error-please-report', this.getBugReportURL(messages)));
+      // this.writeMessage($.i18n('error-please-report', this.getBugReportURL(messages)));
 
       if (location.host === 'localhost' || this.debug) {
         throw messages[0];
