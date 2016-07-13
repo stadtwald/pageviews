@@ -985,6 +985,21 @@ class Pv extends PvConfig {
 
     if (location.host === 'localhost' || this.debug) {
       throw messages[0];
+    } else if (messages && messages[0] && messages[0].stack) {
+      $.ajax({
+        method: 'POST',
+        url: '//tools.wmflabs.org/musikanimal/paste',
+        data: {
+          content: '' +
+            `\ndate:      ${moment().utc().format()}` +
+            `\ntool:      ${this.app}` +
+            `\nurl:       ${document.location.href}` +
+            `\nuserAgent: ${this.getUserAgent()}` +
+            `\ntrace:     ${messages[0].stack}`
+          ,
+          title: `Pageviews Analysis error report: ${messages[0]}`
+        }
+      });
     }
   }
 

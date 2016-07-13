@@ -456,7 +456,7 @@ const ChartHelpers = superclass => class extends superclass {
         }
 
         this.chartObj = new Chart(context, {
-          type: this.chartType,
+          type: this.chartType + '3',
           data: linearData,
           options
         });
