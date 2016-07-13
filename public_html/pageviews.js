@@ -2847,18 +2847,18 @@ var Pv = function (_PvConfig) {
       errors.forEach(function (error) {
         _this9.writeMessage('<strong>' + $.i18n('fatal-error') + '</strong>: <code>' + error + '</code>');
       });
-      // this.writeMessage($.i18n('error-please-report', this.getBugReportURL(messages)));
+      // this.writeMessage($.i18n('error-please-report', this.getBugReportURL(errors)));
 
       if (location.host === 'localhost' || this.debug) {
-        throw messages[0];
-      } else if (messages && messages[0] && messages[0].stack) {
+        throw errors[0];
+      } else if (errors && errors[0] && errors[0].stack) {
         $.ajax({
           method: 'POST',
           url: '//tools.wmflabs.org/musikanimal/paste',
           data: {
-            content: '' + ('\ndate:      ' + moment().utc().format()) + ('\ntool:      ' + this.app) + ('\nurl:       ' + document.location.href) + ('\nuserAgent: ' + this.getUserAgent()) + ('\ntrace:     ' + messages[0].stack),
+            content: '' + ('\ndate:      ' + moment().utc().format()) + ('\ntool:      ' + this.app) + ('\nurl:       ' + document.location.href) + ('\nuserAgent: ' + this.getUserAgent()) + ('\ntrace:     ' + errors[0].stack),
 
-            title: 'Pageviews Analysis error report: ' + messages[0]
+            title: 'Pageviews Analysis error report: ' + errors[0]
           }
         });
       }
